@@ -241,3 +241,147 @@ Version control on design docs captures the evolution of thinking, not just the 
 None.
 
 ---
+
+## DEC-0013 — 2026-05-27 — Three-bucket framework for behavior decisions
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [architecture, principles, behavior]
+
+**What**
+Replace the "designer-locked vs user-defined" binary with three buckets: Locked (immutable), Defaulted (sensible ship config the user can override), Emergent (judgment within constraints of the other two).
+
+**Why**
+Pure user-defined slides toward "Claude + memory" with no product value. Pure designer-locked is rigid and ignores user variance. Three buckets distinguish hard floor, soft starting point, and in-the-moment judgment, and stop design conversations from collapsing into a false dichotomy.
+
+**Open**
+None.
+
+**Related:** DEC-0004
+
+---
+
+## DEC-0014 — 2026-05-27 — Foundational primitives: Item, Collection, Log entry
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [data, architecture, foundational]
+
+**What**
+The system has three top-level primitives: Item (mutable, attributed, lifecycle), Collection (named scope grouping items, holds attribute schema and tier scheme), Log entry (immutable, timestamped, append-only audit record). Value types like Text, Date, Status, Tier, Recurrence rule are field types on items, not primitives.
+
+**Why**
+Items alone can't be anchored without a containing scope, so Collection is necessary. Mutable state alone can't support reliable audit or downstream analysis, so Log entry is necessary. Three primitives are the minimum coherent set; trackers, narratives, and domain concepts compose from these and never become first-class.
+
+**Open**
+Full attribute set per item (Task 5). Recurrence semantics. Whether log entries reference items by id or by content snapshot.
+
+**Related:** DEC-0005
+
+---
+
+## DEC-0015 — 2026-05-27 — State persistence locked, state rendering defaulted
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [behavior, data, architecture]
+
+**What**
+State persistence is locked: every decision is captured, state is always queryable. State rendering (what gets shown back and how often) is defaulted and user-configurable, not locked. Rendering is context-driven by default.
+
+**Why**
+The old planner's "post full list every response" rule was a workaround for stateless chat. With persistent external state, that workaround is unnecessary and gets in the way on mobile or voice surfaces. Locking persistence keeps reliability; defaulting rendering keeps surface flexibility.
+
+**Open**
+What counts as "relevant" by default. Whether render presets live per-collection or globally.
+
+---
+
+## DEC-0016 — 2026-05-27 — Activity log: events stored, narrative derived
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [data, behavior, architecture]
+
+**What**
+Activity log is a hybrid: log entries are written by the system on every state mutation and stored permanently, while the daily narrative is a derived view computed on demand from log entries and not stored as a separate entity. User reflections enter the log as a dedicated event type.
+
+**Why**
+Pure event stream loses human readability. Pure narrative loses fidelity for downstream analysis. Deriving narrative from events gives one source of truth, eliminates a primitive, and lets user edits be modeled as new events rather than mutations of stored text.
+
+**Open**
+Caching strategy for derived narratives. Whether the system ever prompts for reflections vs only accepting volunteered ones.
+
+---
+
+## DEC-0017 — 2026-05-27 — Item lifecycle: two storage states, reason as metadata
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [data, behavior]
+
+**What**
+Items have two storage states only: active and soft-deleted. The reason for deletion (completed, abandoned, archived) is captured as metadata at the moment of removal, not as a separate state in a state machine.
+
+**Why**
+Completion, abandonment, and archive are semantically distinct but mechanically identical (item leaves view). Encoding the distinction as metadata preserves it for the analysis module without bloating the state machine or forking code paths by reason.
+
+**Open**
+Whether soft-deleted items can be restored, and the UX for that. Whether AI prompts for reason when ambiguous or just defaults to "archived."
+
+---
+
+## DEC-0018 — 2026-05-27 — v1 narrative is descriptive, not reflective
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [scope, behavior, data]
+
+**What**
+The v1 (Planning module) narrative is purely descriptive: what got done, pushed, decided, factual. The system never prompts for feelings, mood, energy, or sleep in v1. Reflective journaling is Module 2's responsibility.
+
+**Why**
+Without this line, the narrative drifts into mood capture and v1 swallows Module 2. Keeping the scope tight protects the v1 deliverable from feature creep into emotional territory and lets Module 2 differentiate cleanly later.
+
+**Open**
+None.
+
+**Related:** DEC-0002
+
+---
+
+## DEC-0019 — 2026-05-27 — Presets are configuration only, never behavior
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [architecture, data, scope]
+
+**What**
+Onboarding ships preset collections (e.g. outreach tracker, reading list, habit tracker) as starting configurations. Once instantiated, the system treats a preset and a fully custom collection identically; no code path may check "is this preset X" and fork behavior.
+
+**Why**
+The anti-feature in DEC-0003 bans hardcoded domain modules. Presets are a usability affordance but quietly become domain modules if they ever fork behavior. Hard separation between configuration and behavior prevents that drift.
+
+**Open**
+How many presets to ship at launch, and how they're surfaced in onboarding.
+
+**Related:** DEC-0003, DEC-0005
+
+---
+
+## DEC-0020 — 2026-05-27 — Asking-questions: principle locked, threshold emergent
+
+**Status:** Locked
+**Phase:** 0
+**Tags:** [behavior, principles]
+
+**What**
+The principle that the AI defaults to asking when input is ambiguous is locked and cannot be disabled by the user. The threshold for when to ask is emergent judgment, guided by heuristics (ask when stakes are high or the next action is hard to undo; don't ask for soft choices).
+
+**Why**
+False-confidence failures observed in mining (e.g. claiming a series complete without checking) are worse than annoying questions. Locking the principle prevents the system from being tuned into a flatterer. Leaving the threshold emergent prevents it from becoming an "are you sure?" loop.
+
+**Open**
+Concrete heuristic articulation for the system prompt (Task 3).
+
+---
